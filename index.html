@@ -339,8 +339,8 @@
       <div class="kval"><div class="knum" id="k_bmi">—</div><div class="kunit"></div></div>
     </div>
     <div class="kpi">
-      <div class="khead"><div class="klabel">ウエスト</div><div class="kdelta" id="d_waist">—</div></div>
-      <div class="kval"><div class="knum" id="k_waist">—</div><div class="kunit">cm</div></div>
+      <div class="khead"><div class="klabel">骨格筋量</div><div class="kdelta" id="d_smm">—</div></div>
+      <div class="kval"><div class="knum" id="k_smm">—</div><div class="kunit">kg</div></div>
     </div>
     <div class="kpi">
       <div class="khead"><div class="klabel">体脂肪率</div><div class="kdelta" id="d_bf">—</div></div>
@@ -354,7 +354,7 @@
     <div class="tabs" id="metricTabs">
       <div class="tab active" data-m="weight_kg">体重</div>
       <div class="tab" data-m="bmi">BMI</div>
-      <div class="tab" data-m="waist">ウエスト</div>
+      <div class="tab" data-m="skeletal_muscle_kg">骨格筋量</div>
       <div class="tab" data-m="bodyfat_pct">体脂肪率</div>
     </div>
 
@@ -406,6 +406,10 @@
         <input id="t_bmi" inputmode="decimal" />
       </div>
       <div class="field">
+        <label>骨格筋量 目標 (kg)</label>
+        <input id="t_smm" inputmode="decimal" />
+      </div>
+      <div class="field">
         <label>ウエスト 目標 (cm)</label>
         <input id="t_waist" inputmode="decimal" />
       </div>
@@ -444,25 +448,28 @@
         <input id="a_weight" inputmode="decimal" />
       </div>
       <div class="field">
-        <label>BMI（空なら身長から計算）</label>
-        <input id="a_bmi" inputmode="decimal" placeholder="任意" />
-      </div>
-      <div class="field">
-        <label>ウエスト (cm)</label>
-        <input id="a_waist" inputmode="decimal" />
-      </div>
-      <div class="field">
         <label>体脂肪率 (%)</label>
         <input id="a_bf" inputmode="decimal" />
       </div>
+
       <div class="field">
-        <label>体脂肪量 (kg)</label>
-        <input id="a_fm" inputmode="decimal" placeholder="任意" />
+        <label>BMI（空なら身長から計算）</label>
+        <input id="a_bmi" inputmode="decimal" placeholder="任意" />
       </div>
       <div class="field">
         <label>骨格筋量 (kg)</label>
         <input id="a_smm" inputmode="decimal" placeholder="任意" />
       </div>
+
+      <div class="field">
+        <label>ウエスト (cm)</label>
+        <input id="a_waist" inputmode="decimal" placeholder="任意" />
+      </div>
+      <div class="field">
+        <label>体脂肪量 (kg)</label>
+        <input id="a_fm" inputmode="decimal" placeholder="任意" />
+      </div>
+
       <div class="field">
         <label>内臓脂肪指数</label>
         <input id="a_vfl" inputmode="decimal" placeholder="任意" />
@@ -471,14 +478,14 @@
         <label>基礎代謝量 (kcal)</label>
         <input id="a_bmr" inputmode="decimal" placeholder="任意" />
       </div>
+
       <div class="field">
-        <label>四肢除脂肪量 (kg)</label>
-        <input id="a_lml" inputmode="decimal" placeholder="任意" />
+        <label>四肢の除脂肪量 (kg)</label>
+        <input id="a_lm" inputmode="decimal" placeholder="任意" />
       </div>
     </div>
 
-    <!-- 入力必須フィールドの注記: BMI は身長が設定されていれば自動計算 -->
-    <div class="hint">※必須：日付 / 体重 / ウエスト / 体脂肪率（BMI は身長が設定されていれば自動計算）</div>
+    <div class="hint">※必須：日付 / 体重 / 体脂肪率（BMI は身長が設定されていれば自動計算）</div>
 
     <div class="mActions">
       <button class="btn" id="closeAdd">キャンセル</button>
@@ -500,43 +507,43 @@
 </div>
 
 <script>
-/* ===== Base CSV（33件フル内包） ===== */
+/* ===== Base CSV（内包） ===== */
 const BASE_CSV = `測定日,体重(㎏),BMI,ウエスト,体脂肪量(㎏),内臓脂肪指数,体脂肪率(％),骨格筋量(㎏),基礎代謝量(kcal),四肢の除脂肪量(㎏)
-2025-10-03 0:00:00,86.15,29.5,,37.65,85.0,43.7,23.5,1630,19.7
-2025-10-06 0:00:00,87.3,29.9,,38.2,,43.8,,1567,
-2025-10-10 0:00:00,86.45,29.6,,38.85,115.0,45.0,22.75,1623,19.2
-2025-10-17 0:00:00,85.0,29.1,95.5,37.05,90.0,43.6,23.25,1614,19.35
-2025-10-21 0:00:00,85.6,29.3,,36.1,90.0,42.2,24.05,1636,19.0
-2025-10-24 0:00:00,84.3,28.7,94.5,36.8,85.0,43.8,22.55,1595,18.9
-2025-10-31 0:00:00,83.35,28.5,93.0,35.3,85.0,42.3,23.4,1599,19.1
-2025-11-05 0:00:00,83.4,28.5,92.0,35.7,80.0,42.8,22.8,1596,18.9
-2025-11-08 0:00:00,82.4,28.2,,35.25,80.0,42.8,22.65,1581,18.65
-2025-11-15 0:00:00,82.2,28.1,,34.45,80.0,41.9,22.95,1585,19.05
-2025-11-22 0:00:00,81.4,27.8,91.0,33.85,75.0,41.6,22.9,1576,18.95
-2025-11-28 0:00:00,80.4,27.5,90.0,33.4,75.0,41.6,22.35,1560,18.5
-2025-12-05 0:00:00,79.2,27.1,,32.8,75.0,41.4,22.2,1543,18.05
-2025-12-10 0:00:00,79.35,27.1,,32.3,75.0,40.7,22.65,1551,18.5
-2025-12-20 0:00:00,78.8,26.9,88.0,31.25,65.0,39.6,22.55,1551,18.8
-2025-12-27 0:00:00,77.6,26.5,86.0,30.0,65.0,38.7,23.25,1540,18.65`;
+2025-10-03,86.15,29.5,,37.65,85.0,43.7,23.5,1630,19.7
+2025-10-06,87.3,29.9,,38.2,,43.8,,1567,
+2025-10-10,86.45,29.6,,38.85,115.0,45.0,22.75,1623,19.2
+2025-10-17,85.0,29.1,95.5,37.05,90.0,43.6,23.25,1614,19.35
+2025-10-21,85.6,29.3,,36.1,90.0,42.2,24.05,1636,19.0
+2025-10-24,84.3,28.7,94.5,36.8,85.0,43.8,22.55,1595,18.9
+2025-10-31,83.35,28.5,93.0,35.3,85.0,42.3,23.4,1599,19.1
+2025-11-05,83.4,28.5,92.0,35.7,80.0,42.8,22.8,1596,18.9
+2025-11-08,82.4,28.2,,35.25,80.0,42.8,22.65,1581,18.65
+2025-11-15,82.2,28.1,,34.45,80.0,41.9,22.95,1585,19.05
+2025-11-22,81.4,27.8,91.0,33.85,75.0,41.6,22.9,1576,18.95
+2025-11-28,80.4,27.5,90.0,33.4,75.0,41.6,22.35,1560,18.5
+2025-12-05,79.2,27.1,,32.8,75.0,41.4,22.2,1543,18.05
+2025-12-10,79.35,27.1,,32.3,75.0,40.7,22.65,1551,18.5
+2025-12-20,78.8,26.9,88.0,31.25,65.0,39.6,22.55,1551,18.8
+2025-12-27,77.6,26.5,86.0,30.0,65.0,38.7,23.25,1540,18.65
+`;
 
 /* ===== configs ===== */
 const METRICS = {
   weight_kg:           { name:'体重', unit:'kg' },
   bmi:                 { name:'BMI', unit:'' },
-  waist:               { name:'ウエスト', unit:'cm' },
-  bodyfat_pct:         { name:'体脂肪率', unit:'%' },
-  fatmass_kg:          { name:'体脂肪量', unit:'kg' },
-  muscle_kg:           { name:'筋肉量', unit:'kg' },
   skeletal_muscle_kg:  { name:'骨格筋量', unit:'kg' },
-  visceral_fat_level:  { name:'内臓脂肪指数', unit:'' },
+  bodyfat_pct:         { name:'体脂肪率', unit:'%'  },
+  waist:               { name:'ウエスト', unit:'cm' },
+  fatmass_kg:          { name:'体脂肪量', unit:'kg' },
+  muscle_kg:           { name:'筋肉量', unit:'kg'  },
+  visceral_fat_level:  { name:'内臓脂肪', unit:'lv' },
   bmr_kcal:            { name:'基礎代謝量', unit:'kcal' },
-  lean_mass_limbs_kg:  { name:'四肢除脂肪量', unit:'kg' },
-  fitness_score:       { name:'フィットネススコア', unit:'pt' },
+  lean_mass_limbs_kg:  { name:'四肢の除脂肪量', unit:'kg' },
 };
-// メインで表示する4指標（カード・タブ）
-const MAIN_METRICS = ['weight_kg','bmi','waist','bodyfat_pct'];
-// その他の指標は More タブに並べる
-const MORE_METRICS = ['fatmass_kg','muscle_kg','skeletal_muscle_kg','visceral_fat_level','bmr_kcal','lean_mass_limbs_kg','fitness_score'];
+// 画面上で「メイン」に出す4つ
+const MAIN_METRICS = ['weight_kg','bmi','skeletal_muscle_kg','bodyfat_pct'];
+// More に出す（CSVに存在するがメインに出さない）
+const MORE_METRICS = ['waist','fatmass_kg','visceral_fat_level','bmr_kcal','lean_mass_limbs_kg'];
 
 /* ===== storage keys ===== */
 const TARGET_KEY  = 'progressfit_targets_v2';
@@ -545,83 +552,112 @@ const DELETED_KEY = 'progressfit_deleted_dates_v1';
 
 /* ===== utils ===== */
 const $ = (id)=>document.getElementById(id);
-// CSV ヘッダを内部キーに変換するマッピング。日本語カラム名や英語名を統一キーに変換する
-const HEADER_MAP = {
-  'date':'date',
-  '測定日':'date',
-  '体重(㎏)':'weight_kg',
-  '体重（㎏）':'weight_kg',
-  'BMI':'bmi',
-  'ウエスト':'waist',
-  '体脂肪率(％)':'bodyfat_pct',
-  '体脂肪量(㎏)':'fatmass_kg',
-  '筋肉量(㎏)':'muscle_kg',
-  '骨格筋量(㎏)':'skeletal_muscle_kg',
-  '内臓脂肪指数':'visceral_fat_level',
-  '内臓脂肪レベル':'visceral_fat_level',
-  '内臓脂肪':'visceral_fat_level',
-  '基礎代謝量(kcal)':'bmr_kcal',
-  '四肢の除脂肪量(㎏)':'lean_mass_limbs_kg',
-  'フィットネススコア':'fitness_score',
-  'フィットネススコア (pt)':'fitness_score'
-};
 function fmt1(x){ return Number.isFinite(x) ? (Math.round(x*10)/10).toFixed(1) : '—'; }
 function numOrNull(v){ return (v===undefined||v===null||v==='') ? null : Number(v); }
 
-// 汎用CSVパーサー。ヘッダ行を読み取り、日本語カラム名を内部キーにマッピングする。
-// 数値以外はそのまま文字列とし、脂肪量や筋肉量が欠けていれば計算する。
+// CSV ヘッダを内部キーに変換するマッピング（日本語CSV / 英語CSVどちらも対応）
+const HEADER_MAP = {
+  'date':'date',
+  '測定日':'date',
+
+  'weight_kg':'weight_kg',
+  '体重(㎏)':'weight_kg',
+  '体重（㎏）':'weight_kg',
+  '体重(kg)':'weight_kg',
+  '体重（kg）':'weight_kg',
+
+  'bmi':'bmi',
+  'BMI':'bmi',
+
+  'waist':'waist',
+  'ウエスト':'waist',
+
+  'bodyfat_pct':'bodyfat_pct',
+  '体脂肪率(％)':'bodyfat_pct',
+  '体脂肪率(%)':'bodyfat_pct',
+
+  'fatmass_kg':'fatmass_kg',
+  '体脂肪量(㎏)':'fatmass_kg',
+
+  'muscle_kg':'muscle_kg',
+  '筋肉量(㎏)':'muscle_kg',
+
+  'skeletal_muscle_kg':'skeletal_muscle_kg',
+  '骨格筋量(㎏)':'skeletal_muscle_kg',
+
+  'visceral_fat_level':'visceral_fat_level',
+  '内臓脂肪指数':'visceral_fat_level',
+  '内臓脂肪レベル':'visceral_fat_level',
+
+  'bmr_kcal':'bmr_kcal',
+  '基礎代謝量(kcal)':'bmr_kcal',
+
+  'lean_mass_limbs_kg':'lean_mass_limbs_kg',
+  '四肢の除脂肪量(㎏)':'lean_mass_limbs_kg',
+
+  // 互換用（今は使わない）
+  'fitness_score':'fitness_score',
+  'フィットネススコア':'fitness_score',
+};
+
 function parseCsv(csv){
-  const lines = csv.trim().split(/\n/);
-  if(!lines.length) return [];
-  const headers = lines[0].split(',');
-  const rows = [];
-  for(let i=1; i<lines.length; i++){
-    const line = lines[i];
-    if(!line) continue;
+  const lines = csv.trim().split(/\r?\n/).filter(Boolean);
+  if(lines.length < 2) return [];
+
+  const headers = lines.shift().split(',').map(h => h.trim());
+  const keys = headers.map(h => HEADER_MAP[h] || null);
+
+  const parseNum = (s)=>{
+    if(s===undefined || s===null) return null;
+    const t = String(s).trim();
+    if(!t) return null;
+    const n = Number(t);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const out = [];
+  for(const line of lines){
     const cols = line.split(',');
-    const obj = {};
-    for(let j=0; j<headers.length; j++){
-      const orig = headers[j];
-      const key = HEADER_MAP[orig] || orig;
-      const val = cols[j] ?? '';
-      if(key === 'date'){
-        obj.date = val;
-      }else{
-        obj[key] = numOrNull(val);
+    const r = {};
+    for(let i=0;i<keys.length;i++){
+      const key = keys[i];
+      if(!key) continue;
+      const raw = (cols[i] ?? '').trim();
+      if(key==='date'){
+        // 2025-10-03 0:00:00 のような場合もあるので先頭10文字に丸める
+        const d = raw ? raw.slice(0,10) : '';
+        r.date = d;
+        continue;
       }
+      const v = parseNum(raw);
+      r[key] = v;
     }
-    // fatmass_kg を欠損時に計算（体重×体脂肪率/100）
-    if(obj.fatmass_kg === undefined || obj.fatmass_kg === null){
-      if(Number.isFinite(obj.weight_kg) && Number.isFinite(obj.bodyfat_pct)){
-        obj.fatmass_kg = obj.weight_kg * obj.bodyfat_pct / 100;
-      }else{
-        obj.fatmass_kg = null;
-      }
+    if(!r.date) continue;
+
+    // 派生値（欠損補完）
+    if(!Number.isFinite(r.fatmass_kg) && Number.isFinite(r.weight_kg) && Number.isFinite(r.bodyfat_pct)){
+      r.fatmass_kg = r.weight_kg * r.bodyfat_pct / 100;
     }
-    // muscle_kg を欠損時に計算（体重 − 体脂肪量）
-    if(obj.muscle_kg === undefined || obj.muscle_kg === null){
-      if(Number.isFinite(obj.weight_kg) && Number.isFinite(obj.fatmass_kg)){
-        obj.muscle_kg = obj.weight_kg - obj.fatmass_kg;
-      }else{
-        obj.muscle_kg = null;
-      }
+    if(!Number.isFinite(r.muscle_kg) && Number.isFinite(r.weight_kg) && Number.isFinite(r.fatmass_kg)){
+      r.muscle_kg = r.weight_kg - r.fatmass_kg;
     }
-    rows.push(obj);
+
+    out.push(r);
   }
-  return rows;
+  return out;
 }
 const baseRows = parseCsv(BASE_CSV);
 
 /* ===== targets ===== */
-// 目標値のデフォルト。BMIやウエストはユーザーが設定しない限り線を出さないため null にする
 const defaultTargets = {
   weight_kg: 75.0,
-  bmi: null,
-  waist: null,
   bodyfat_pct: 20.0,
-  fatmass_kg: 16.0,
-  muscle_kg: 55.0,
-  height_cm: null
+  bmi: null,
+  skeletal_muscle_kg: null,
+  waist: null,
+  fatmass_kg: null,
+  muscle_kg: null,
+  height_cm: null,
 };
 let targets = loadTargets();
 function loadTargets(){
@@ -776,7 +812,10 @@ const bodyMapBg = {
 function ensureTrend(data){
   const labels = data.map(r=>r.date);
   const m = METRICS[currentMetric] || {name:currentMetric, unit:''};
-  const values = data.map(r=>r[currentMetric]);
+  const values = data.map(r=>{
+    const v = r[currentMetric];
+    return Number.isFinite(v) ? v : null;
+  });
   const ctx = $('trend');
 
   if(!trendChart){
@@ -785,6 +824,7 @@ function ensureTrend(data){
       data:{ labels, datasets:[{
         label: m.name + (m.unit?` (${m.unit})`:``),
         data: values,
+        spanGaps: true,
         tension: .35,
         pointRadius: 2,
         pointHoverRadius: 5,
@@ -909,12 +949,12 @@ function render(){
 
   $('k_weight').textContent = fmt1(end.weight_kg);
   $('k_bmi').textContent    = fmt1(end.bmi);
-  $('k_waist').textContent  = fmt1(end.waist);
+  $('k_smm').textContent    = fmt1(end.skeletal_muscle_kg);
   $('k_bf').textContent     = fmt1(end.bodyfat_pct);
 
   setDelta($('d_weight'), end.weight_kg - start.weight_kg, true);
   setDelta($('d_bmi'),    end.bmi - start.bmi, true);
-  setDelta($('d_waist'),  end.waist - start.waist, true);
+  setDelta($('d_smm'),    end.skeletal_muscle_kg - start.skeletal_muscle_kg, false);
   setDelta($('d_bf'),     end.bodyfat_pct - start.bodyfat_pct, true);
 
   $('metricTitle').textContent = (METRICS[currentMetric]?.name || currentMetric);
@@ -960,9 +1000,10 @@ closeOnBg(listBg);
 /* ===== Targets ===== */
 $('openTargets').onclick = ()=>{
   $('t_weight').value = Number.isFinite(targets.weight_kg)?targets.weight_kg.toFixed(1):'';
-  $('t_bmi').value    = Number.isFinite(targets.bmi)?targets.bmi.toFixed(1):'';
-  $('t_waist').value  = Number.isFinite(targets.waist)?targets.waist.toFixed(1):'';
   $('t_bf').value     = Number.isFinite(targets.bodyfat_pct)?targets.bodyfat_pct.toFixed(1):'';
+  $('t_bmi').value    = Number.isFinite(targets.bmi)?targets.bmi.toFixed(1):'';
+  $('t_smm').value    = Number.isFinite(targets.skeletal_muscle_kg)?targets.skeletal_muscle_kg.toFixed(1):'';
+  $('t_waist').value  = Number.isFinite(targets.waist)?targets.waist.toFixed(1):'';
   $('t_fm').value     = Number.isFinite(targets.fatmass_kg)?targets.fatmass_kg.toFixed(1):'';
   $('t_mu').value     = Number.isFinite(targets.muscle_kg)?targets.muscle_kg.toFixed(1):'';
   $('t_height').value = targets.height_cm ? String(targets.height_cm) : '';
@@ -971,21 +1012,23 @@ $('openTargets').onclick = ()=>{
 $('closeTargets').onclick = ()=> closeModal(targetsBg);
 
 $('saveTargets').onclick = ()=>{
-  const w     = parseFloat($('t_weight').value);
-  const bmi   = parseFloat($('t_bmi').value);
-  const waist = parseFloat($('t_waist').value);
-  const bf    = parseFloat($('t_bf').value);
-  const fm    = parseFloat($('t_fm').value);
-  const mu    = parseFloat($('t_mu').value);
-  const h     = parseFloat($('t_height').value);
+  const read = (id)=>{
+    const s = ($ (id).value || '').trim();
+    if(!s) return null;
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : null;
+  };
 
-  if(!Number.isNaN(w))     targets.weight_kg = w;
-  if(!Number.isNaN(bmi))   targets.bmi = bmi;
-  if(!Number.isNaN(waist)) targets.waist = waist;
-  if(!Number.isNaN(bf))    targets.bodyfat_pct = bf;
-  if(!Number.isNaN(fm))    targets.fatmass_kg = fm;
-  if(!Number.isNaN(mu))    targets.muscle_kg = mu;
-  targets.height_cm = (!Number.isNaN(h) && h>0) ? h : null;
+  targets.weight_kg = read('t_weight');
+  targets.bodyfat_pct = read('t_bf');
+  targets.bmi = read('t_bmi');
+  targets.skeletal_muscle_kg = read('t_smm');
+  targets.waist = read('t_waist');
+  targets.fatmass_kg = read('t_fm');
+  targets.muscle_kg = read('t_mu');
+
+  const h = read('t_height');
+  targets.height_cm = (Number.isFinite(h) && h>0) ? h : null;
 
   saveTargets();
   closeModal(targetsBg);
@@ -998,14 +1041,14 @@ $('saveTargets').onclick = ()=>{
 function resetForm(){
   $('a_date').value = '';
   $('a_weight').value = '';
-  $('a_bmi').value = '';
-  $('a_waist').value = '';
   $('a_bf').value = '';
-  $('a_fm').value = '';
+  $('a_bmi').value = '';
   $('a_smm').value = '';
+  $('a_waist').value = '';
+  $('a_fm').value = '';
   $('a_vfl').value = '';
   $('a_bmr').value = '';
-  $('a_lml').value = '';
+  $('a_lm').value = '';
 }
 
 function openAdd(){
@@ -1022,16 +1065,16 @@ function openEdit(row){
   $('addTitle').textContent = 'データ更新';
   $('deleteOne').style.display = 'inline-block';
 
-  $('a_date').value    = row.date || '';
-  $('a_weight').value  = row.weight_kg ?? '';
-  $('a_bmi').value     = row.bmi ?? '';
-  $('a_waist').value   = row.waist ?? '';
-  $('a_bf').value      = row.bodyfat_pct ?? '';
-  $('a_fm').value      = row.fatmass_kg ?? '';
-  $('a_smm').value     = row.skeletal_muscle_kg ?? '';
-  $('a_vfl').value     = row.visceral_fat_level ?? '';
-  $('a_bmr').value     = row.bmr_kcal ?? '';
-  $('a_lml').value     = row.lean_mass_limbs_kg ?? '';
+  $('a_date').value   = row.date || '';
+  $('a_weight').value = row.weight_kg ?? '';
+  $('a_bf').value     = row.bodyfat_pct ?? '';
+  $('a_bmi').value    = row.bmi ?? '';
+  $('a_smm').value    = row.skeletal_muscle_kg ?? '';
+  $('a_waist').value  = row.waist ?? '';
+  $('a_fm').value     = row.fatmass_kg ?? '';
+  $('a_vfl').value    = row.visceral_fat_level ?? '';
+  $('a_bmr').value    = row.bmr_kcal ?? '';
+  $('a_lm').value     = row.lean_mass_limbs_kg ?? '';
 
   openModal(addBg);
 }
@@ -1046,62 +1089,48 @@ function computeBmiFromHeight(weightKg){
 }
 
 $('saveAdd').onclick = ()=>{
-  const date  = ($('a_date').value || '').trim();
+  const date = ($('a_date').value || '').trim();
   const weight = parseFloat($('a_weight').value);
-  const bmiVal = parseFloat($('a_bmi').value);
-  const waist = parseFloat($('a_waist').value);
-  const bf   = parseFloat($('a_bf').value);
-  const fm   = parseFloat($('a_fm').value);
-  const smm  = parseFloat($('a_smm').value);
-  const vfl  = parseFloat($('a_vfl').value);
-  const bmr  = parseFloat($('a_bmr').value);
-  const lml  = parseFloat($('a_lml').value);
+  const bf = parseFloat($('a_bf').value);
+  const waistIn = parseFloat($('a_waist').value);
+  const fmIn = parseFloat($('a_fm').value);
+  let bmi = parseFloat($('a_bmi').value);
+  const smmIn = parseFloat($('a_smm').value);
+  const vflIn = parseFloat($('a_vfl').value);
+  const bmrIn = parseFloat($('a_bmr').value);
+  const lmIn  = parseFloat($('a_lm').value);
 
   if(!date){ alert('日付を選んでね'); return; }
-  // 必須項目のチェック（体重・ウエスト・体脂肪率は必須、BMIは空の場合身長から自動計算）
-    if(Number.isNaN(weight) || Number.isNaN(waist) || Number.isNaN(bf)){
-    // 必須項目不足時のメッセージ。BMI は身長から自動計算されるため入力は任意。
-    alert('必須が足りないよ（体重/ウエスト/体脂肪率）');
+  if([weight,bf].some(x=>Number.isNaN(x))){
+    alert('必須が足りないよ（体重/体脂肪率）');
     return;
   }
 
-  let bmi = bmiVal;
+  // BMI（未入力なら、身長が設定されていれば自動計算。無ければ null で保存）
   if(Number.isNaN(bmi)){
     const calc = computeBmiFromHeight(weight);
-    if(calc === null){
-      alert('BMIが空なら、目標設定で身長(cm)を入れてね（自動計算する）');
-      return;
-    }
-    bmi = calc;
+    bmi = (calc===null) ? null : calc;
   }
 
-  // fatmass_kg が入力されていない場合は体重×体脂肪率/100 で計算する
-  let fatmass = fm;
-  if(Number.isNaN(fatmass)){
-    if(!Number.isNaN(weight) && !Number.isNaN(bf)){
-      fatmass = weight * bf / 100;
-    } else {
-      fatmass = null;
-    }
-  }
-  // muscle_kg は体重 − 脂肪量
-  let muscle = null;
-  if(Number.isFinite(weight) && Number.isFinite(fatmass)){
-    muscle = weight - fatmass;
-  }
+  // 体脂肪量（未入力なら 体重×体脂肪率 から計算）
+  const fatmass = Number.isNaN(fmIn)
+    ? (Number.isFinite(weight) && Number.isFinite(bf) ? (weight * bf / 100) : null)
+    : fmIn;
+  // 筋肉量（内部用：体重 - 体脂肪量）
+  const muscle = (Number.isFinite(weight) && Number.isFinite(fatmass)) ? (weight - fatmass) : null;
 
   const row = {
     date,
     weight_kg: weight,
-    bmi: bmi,
-    waist: waist,
     bodyfat_pct: bf,
-    fatmass_kg: fatmass,
-    muscle_kg: muscle,
-    skeletal_muscle_kg: Number.isNaN(smm) ? null : smm,
-    visceral_fat_level: Number.isNaN(vfl) ? null : vfl,
-    bmr_kcal: Number.isNaN(bmr) ? null : bmr,
-    lean_mass_limbs_kg: Number.isNaN(lml) ? null : lml,
+    bmi,
+    skeletal_muscle_kg: Number.isNaN(smmIn) ? null : smmIn,
+    waist: Number.isNaN(waistIn) ? null : waistIn,
+    fatmass_kg: Number.isFinite(fatmass) ? fatmass : null,
+    muscle_kg: Number.isFinite(muscle) ? muscle : null,
+    visceral_fat_level: Number.isNaN(vflIn) ? null : vflIn,
+    bmr_kcal: Number.isNaN(bmrIn) ? null : bmrIn,
+    lean_mass_limbs_kg: Number.isNaN(lmIn) ? null : lmIn,
   };
 
   let adds = loadAdds();
@@ -1162,7 +1191,7 @@ function renderList(){
     div.innerHTML = `
       <div class="listMain">
         <div class="listDate">${r.date}</div>
-        <div class="listSub">${fmt1(r.weight_kg)}kg / BMI${fmt1(r.bmi)} / ${fmt1(r.waist)}cm / ${fmt1(r.bodyfat_pct)}%</div>
+        <div class="listSub">${fmt1(r.weight_kg)}kg / BMI${fmt1(r.bmi)} / 骨格筋${fmt1(r.skeletal_muscle_kg)}kg / 体脂肪${fmt1(r.bodyfat_pct)}%</div>
       </div>
       <div class="listActions"><button class="listEdit">更新</button></div>
     `;
@@ -1181,9 +1210,8 @@ $('countChip').onclick = ()=>{
 /* ===== import / export ===== */
 // 現在のデータをCSV形式でダウンロードする
 function exportCsv(){
-  // 出力するCSV ヘッダー（日本語表記）
-  const headers = ['測定日','体重(㎏)','BMI','ウエスト','体脂肪量(㎏)','内臓脂肪指数','体脂肪率(％)','骨格筋量(㎏)','基礎代謝量(kcal)','四肢の除脂肪量(㎏)'];
-  let csv = headers.join(',') + '\n';
+  // CSV ヘッダー（日本語CSV）
+  let csv = '測定日,体重(㎏),BMI,ウエスト,体脂肪量(㎏),内臓脂肪指数,体脂肪率(％),骨格筋量(㎏),基礎代謝量(kcal),四肢の除脂肪量(㎏)\n';
   // データを取得してCSVに変換
   const data = mergeRows();
   data.forEach(r => {
@@ -1281,6 +1309,7 @@ async function exportPdf() {
                   METRICS[metricKey].name +
                   (METRICS[metricKey].unit ? ` (${METRICS[metricKey].unit})` : ''),
                 data: values,
+                spanGaps: true,
                 fill: false,
                 tension: 0.1,
                 borderColor: '#6f97ff',
@@ -1374,7 +1403,6 @@ function handleImportFiles(files){
     try{
       const text = (evt.target.result || '').trim();
       if(!text){ alert('ファイルが空です'); return; }
-      // CSV 全体を parseCsv でパース。ヘッダに応じて内部キーに変換される
       const imported = parseCsv(text);
       if(!imported.length){ alert('データが見つかりません'); return; }
       // 現在の追加データと削除データを取得
