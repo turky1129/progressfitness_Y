@@ -691,6 +691,10 @@ const bodyMapBg = {
     const {ctx, chartArea, scales: {x, y}} = chart;
     if (!chartArea) return;
 
+    // グラフの現在の最大表示範囲を取得して背景描画の上限にする
+    const xLimit = x.max;
+    const yLimit = y.max;
+
     const drawSection = (xStart, xEnd, yStart, yEnd, color, label) => {
       const xl = x.getPixelForValue(xStart);
       const xr = x.getPixelForValue(xEnd);
@@ -725,19 +729,19 @@ const bodyMapBg = {
     // 女性用基準：BMI 18.5, 25 / 体脂肪率 20, 30, 35
     
     // 左列 (BMI < 18.5)
-    drawSection(0, 18.5, 0, 20,   'rgba(124, 255, 140, 0.05)', '低脂肪');
-    drawSection(0, 18.5, 20, 30,  'rgba(255, 255, 255, 0.02)', '低体重');
-    drawSection(0, 18.5, 30, 100, 'rgba(255, 106, 122, 0.05)', '隠れ肥満');
+    drawSection(0, 18.5, 0, 20,       'rgba(124, 255, 140, 0.05)', '低脂肪');
+    drawSection(0, 18.5, 20, 30,      'rgba(255, 255, 255, 0.02)', '低体重');
+    drawSection(0, 18.5, 30, yLimit,  'rgba(255, 106, 122, 0.05)', '隠れ肥満');
 
     // 中央列 (BMI 18.5 - 25.0)
-    drawSection(18.5, 25, 0, 20,  'rgba(255, 180, 100, 0.05)', '低脂肪');
-    drawSection(18.5, 25, 20, 30, 'rgba(106, 227, 255, 0.12)', '理想的');
-    drawSection(18.5, 25, 30, 35, 'rgba(255, 255, 255, 0.03)', '脂肪過多');
-    drawSection(18.5, 25, 35, 100, 'rgba(106, 227, 255, 0.08)', '境界型肥満');
+    drawSection(18.5, 25, 0, 20,      'rgba(255, 180, 100, 0.05)', '低脂肪');
+    drawSection(18.5, 25, 20, 30,     'rgba(106, 227, 255, 0.12)', '理想的');
+    drawSection(18.5, 25, 30, 35,     'rgba(255, 255, 255, 0.03)', '脂肪過多');
+    drawSection(18.5, 25, 35, yLimit, 'rgba(106, 227, 255, 0.08)', '境界型肥満');
 
     // 右列 (BMI > 25.0)
-    drawSection(25, 100, 0, 30,    'rgba(167, 139, 250, 0.05)', '過体重');
-    drawSection(25, 100, 30, 100,   'rgba(255, 106, 122, 0.10)', '肥満');
+    drawSection(25, xLimit, 0, 30,     'rgba(167, 139, 250, 0.05)', '過体重');
+    drawSection(25, xLimit, 30, yLimit, 'rgba(255, 106, 122, 0.10)', '肥満');
 
     // 境界線
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
@@ -819,14 +823,14 @@ function ensureBodyMap(data){
             ticks:{ color:'#9fb0d6' }, 
             grid:{ color:'rgba(255,255,255,.06)' },
             min: 15,
-            max: 35
+            max: 40
           },
           y:{ 
             title:{display:true,text:'体脂肪率(%)',color:'#9fb0d6'}, 
             ticks:{ color:'#9fb0d6' }, 
             grid:{ color:'rgba(255,255,255,.06)' },
             min: 5,
-            max: 40
+            max: 45
           },
         }
       },
