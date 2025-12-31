@@ -15,7 +15,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <style>
     :root{
@@ -24,391 +23,265 @@
       --text:#e8eefc;
       --muted:#9fb0d6;
       --good:#7CFF8C;
-      --bad:#ff6a7a;
       --radius:16px;
       --shadow: 0 18px 60px rgba(0,0,0,.35);
     }
     *{box-sizing:border-box}
     body{
       margin:0; color:var(--text);
-      font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",Segoe UI,Roboto,Arial,sans-serif;
-      background:
-        radial-gradient(1200px 800px at 30% -10%, rgba(106,227,255,.18), transparent 55%),
-        radial-gradient(900px 700px at 110% 10%, rgba(167,139,250,.18), transparent 60%),
-        var(--bg);
-      padding: 14px 12px 14px;
+      font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+      background: radial-gradient(1200px 800px at 30% -10%, rgba(106,227,255,.18), transparent 55%), var(--bg);
+      padding: 14px 12px;
     }
-    .phone{
-      max-width: 430px;
-      margin: 0 auto;
-      min-height: calc(100dvh - 28px);
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-    }
-    .top{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    .brand{display:flex; gap:10px; align-items:center; min-width:0}
+    .phone{ max-width: 430px; margin: 0 auto; min-height: calc(100dvh - 28px); display:flex; flex-direction:column; gap:12px; }
     
-    /* アイコン表示設定 */
+    /* ヘッダー・ロゴ */
+    .top{ display:flex; align-items:center; justify-content:space-between; }
+    .brand{ display:flex; gap:10px; align-items:center; }
     .logo{
       width:40px; height:40px; border-radius:14px;
-      background: 
-        url('icon-192.png') no-repeat center center / cover,
-        linear-gradient(135deg,rgba(106,227,255,.28),rgba(167,139,250,.22));
-      box-shadow:var(--shadow);
-      flex:0 0 auto;
-      cursor:pointer;
-      -webkit-tap-highlight-color: transparent;
+      background: url('icon-192.png') no-repeat center center / cover, linear-gradient(135deg,rgba(106,227,255,.2),rgba(167,139,250,.2));
+      box-shadow:var(--shadow); flex:0 0 auto; cursor:pointer;
     }
-    .logo.spinning{ animation: spin 0.9s linear infinite; filter: brightness(1.08); }
-    @keyframes spin{ from{ transform: rotate(0deg); } to{ transform: rotate(360deg); } }
+    .logo.spinning{ animation: spin 0.9s linear infinite; }
+    @keyframes spin{ from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    .title{ font-size:18px; font-weight:900; }
 
-    .titlewrap{min-width:0}
-    .title{font-size:18px; font-weight:900; margin:0; line-height:1.2}
-    .sub{font-size:12px; color:var(--muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    /* チップ・ボタン */
+    .actions{ display:flex; gap:8px; }
+    .chip{ border:1px solid var(--border); background:rgba(255,255,255,.03); border-radius:999px; padding:8px 12px; font-size:12px; font-weight:900; }
+    .btn-add{ background:rgba(106,227,255,.15); color:var(--text); cursor:pointer; }
 
-    .actions{display:flex; gap:8px; align-items:center; flex:0 0 auto}
-    .chip{
-      border:1px solid var(--border);
-      background: rgba(255,255,255,.03);
-      color: var(--muted);
-      border-radius:999px;
-      padding:8px 10px;
-      font-size:12px;
-      font-weight:900;
-      line-height:1;
-      user-select:none;
-    }
-    .chip b{color:var(--text)}
-    .chipBtn{
-      cursor:pointer;
-      color: var(--text);
-      background: rgba(106,227,255,.12);
-      border-color: rgba(106,227,255,.22);
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .chipBtn.disabled{ opacity: .55; pointer-events:none; }
-
-    .seg{
-      display:flex; border:1px solid var(--border);
-      background: rgba(255,255,255,.03);
-      border-radius:999px; padding:6px; gap:6px;
-    }
-    .seg button{
-      border:0; background:transparent; color:var(--muted);
-      font-weight:900; padding:10px 12px; border-radius:999px;
-      cursor:pointer; line-height:1; flex:1;
-      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-    }
-    .seg button.active{ color:var(--text); background: rgba(106,227,255,.18); }
-
+    /* メインKPI */
     .kpis{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-    .kpi{
-      border:1px solid var(--border);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
-      border-radius: var(--radius); padding:12px; box-shadow: var(--shadow);
-      min-height:86px;
-    }
-    .khead{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
-    .klabel{font-size:12px;color:var(--muted);font-weight:900}
-    .kdelta{font-size:12px;font-weight:950}
-    .kval{display:flex; align-items:baseline; gap:8px; margin-top:6px}
-    .knum{font-size:26px;font-weight:1000; letter-spacing:.2px}
-    .kunit{font-size:12px;color:var(--muted);font-weight:900}
+    .kpi{ border:1px solid var(--border); background:rgba(255,255,255,.03); border-radius:var(--radius); padding:12px; }
+    .klabel{ font-size:11px; color:var(--muted); font-weight:900; }
+    .kval{ display:flex; align-items:baseline; gap:4px; margin-top:4px; }
+    .knum{ font-size:24px; font-weight:900; }
+    .kunit{ font-size:11px; color:var(--muted); }
 
-    .panel{
-      border:1px solid var(--border);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
-      border-radius: var(--radius); padding:10px; box-shadow: var(--shadow);
-      flex:1; display:flex; flex-direction:column; min-height: 0;
-    }
+    /* パネルエリア */
+    .panel{ border:1px solid var(--border); background:rgba(255,255,255,.03); border-radius:var(--radius); padding:12px; flex:1; display:flex; flex-direction:column; }
+    .tabs{ display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px; }
+    .tab{ padding:8px 12px; border-radius:999px; border:1px solid var(--border); font-size:12px; white-space:nowrap; cursor:pointer; color:var(--muted); }
+    .tab.active{ background:rgba(167,139,250,.2); color:var(--text); border-color:rgba(167,139,250,.4); }
 
-    .tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; }
-    .tab{
-      border:1px solid var(--border); background: rgba(255,255,255,.03);
-      color: var(--muted); border-radius:999px; padding:8px 10px;
-      font-size:12px; font-weight:900; cursor:pointer; line-height:1;
-    }
-    .tab.active{ color: var(--text); background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.30); }
+    .chartWrap{ flex:1; min-height:200px; position:relative; }
+    .moreGrid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .moreItem{ padding:10px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.02); }
 
-    #metricTitle{ display:none; font-size:14px; font-weight:1000; margin: 2px 0 6px; color: var(--text); }
-    .chartWrap{ position:relative; flex:1; min-height:0; }
-    #trendView{ padding-bottom: calc(30px + env(safe-area-inset-bottom)); }
-    canvas{width:100% !important; height:100% !important}
-
-    #moreView{ flex:1; min-height:0; overflow:auto; }
-    .moreGrid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; padding-top:4px; }
-    .moreItem{
-      border:1px solid var(--border); background: rgba(255,255,255,.03);
-      border-radius: 14px; padding:10px; cursor:pointer;
-    }
-    .moreName{font-size:12px;color:var(--muted);font-weight:900}
-    .moreVal{margin-top:6px;font-size:18px;font-weight:1000}
-    .moreUnit{font-size:12px;color:var(--muted);font-weight:900;margin-left:6px}
-
-    .modalBg{
-      position:fixed; inset:0; background: rgba(0,0,0,.55);
-      display:none; align-items:center; justify-content:center; padding:16px; z-index: 50;
-    }
-    .modal{
-      width:min(430px, 100%); border:1px solid var(--border);
-      background: rgba(12,18,32,.92); backdrop-filter: blur(10px);
-      border-radius: 18px; padding:14px;
-    }
-    .mTitle{font-size:14px;font-weight:1000;margin-bottom:10px}
+    /* モーダル */
+    .modalBg{ position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; padding:16px; z-index:100; }
+    .modal{ width:100%; max-width:400px; background:#161d2b; border-radius:20px; padding:20px; border:1px solid var(--border); }
     .form{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-    .field{ border:1px solid var(--border); background: rgba(255,255,255,.03); border-radius: 14px; padding:10px; }
-    .field.full{ grid-column: 1 / -1; }
-    .field label{display:block;font-size:12px;color:var(--muted);font-weight:900;margin-bottom:6px}
-    .field input{ width:100%; border:0; outline:none; background: transparent; color: var(--text); font-size:16px; font-weight:950; }
-    .mActions{display:flex; gap:8px; justify-content:flex-end; margin-top:12px}
-    .btn{
-      border:1px solid var(--border); background: rgba(255,255,255,.03); color: var(--text);
-      border-radius: 999px; padding:10px 12px; font-weight:950; cursor:pointer;
-    }
-    .btnPrimary{ background: rgba(106,227,255,.14); border-color: rgba(106,227,255,.30); }
-    .btnDanger{ background: rgba(255,106,122,.12); border-color: rgba(255,106,122,.25); }
-
-    .listRow{
-      border:1px solid var(--border); background: rgba(255,255,255,.03);
-      border-radius:12px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between;
-    }
-    .listDate{font-weight:1000; font-size:13px}
-    .listSub{color:var(--muted); font-size:12px}
-    .listEdit{
-      border:0; background: rgba(106,227,255,.15); color: var(--text);
-      border-radius:999px; padding:6px 10px; font-size:12px; font-weight:900;
-    }
+    .f-full{ grid-column: span 2; }
+    .field label{ display:block; font-size:11px; color:var(--muted); margin-bottom:4px; }
+    .field input{ width:100%; background:rgba(0,0,0,.2); border:1px solid var(--border); color:#fff; padding:8px; border-radius:8px; font-size:16px; }
+    .m-btns{ display:flex; gap:10px; margin-top:20px; justify-content:flex-end; }
+    .btn{ padding:10px 20px; border-radius:999px; border:none; font-weight:900; cursor:pointer; }
+    .btn-save{ background:var(--good); color:#000; }
   </style>
 </head>
-
 <body>
+
 <div class="phone">
   <div class="top">
     <div class="brand">
       <div class="logo" id="logoBtn"></div>
-      <div class="titlewrap">
-        <div class="title">ProgressFit</div>
-        <div class="sub" id="subtitle">Loading…</div>
-      </div>
+      <div class="title">ProgressFit</div>
     </div>
     <div class="actions">
-      <div class="chip chipBtn" id="countChip">件数 <b id="count">0</b></div>
-      <div class="chip chipBtn" id="openAdd">＋データ</div>
+      <div class="chip btn-add" id="openAdd">＋データ</div>
     </div>
-  </div>
-
-  <div class="seg" id="rangeSeg">
-    <button class="active" data-range="all">全期間</button>
-    <button data-range="1y">1年</button>
-    <button data-range="3m">3ヶ月</button>
   </div>
 
   <div class="kpis">
     <div class="kpi">
-      <div class="khead"><div class="klabel">体重</div><div class="kdelta" id="d_weight">—</div></div>
-      <div class="kval"><div class="knum" id="k_weight">—</div><div class="kunit">kg</div></div>
+      <div class="klabel">体重</div>
+      <div class="kval"><span class="knum" id="k_weight">—</span><span class="kunit">kg</span></div>
     </div>
     <div class="kpi">
-      <div class="khead"><div class="klabel">体脂肪率</div><div class="kdelta" id="d_bf">—</div></div>
-      <div class="kval"><div class="knum" id="k_bf">—</div><div class="kunit">%</div></div>
-    </div>
-    <div class="kpi">
-      <div class="khead"><div class="klabel">体脂肪量</div><div class="kdelta" id="d_fm">—</div></div>
-      <div class="kval"><div class="knum" id="k_fm">—</div><div class="kunit">kg</div></div>
-    </div>
-    <div class="kpi">
-      <div class="khead"><div class="klabel">骨格筋量</div><div class="kdelta" id="d_smm">—</div></div>
-      <div class="kval"><div class="knum" id="k_smm">—</div><div class="kunit">kg</div></div>
+      <div class="klabel">体脂肪率</div>
+      <div class="kval"><span class="knum" id="k_bf">—</span><span class="kunit">%</span></div>
     </div>
   </div>
 
   <div class="panel">
-    <div id="metricTitle"></div>
     <div class="tabs" id="metricTabs">
-      <div class="tab active" data-m="体重(㎏)">体重</div>
-      <div class="tab" data-m="体脂肪率(％)">体脂肪率</div>
-      <div class="tab" data-m="体脂肪量(㎏)">体脂肪量</div>
-      <div class="tab" data-m="骨格筋量(㎏)">骨格筋量</div>
+      <div class="tab active" data-m="weight_kg">体重</div>
+      <div class="tab" data-m="body_fat_pct">体脂肪率</div>
+      <div class="tab" data-m="skeletal_muscle_kg">骨格筋量</div>
+      <div class="tab" data-m="waist">ウエスト</div>
+    </div>
+    
+    <div id="trendView" class="chartWrap"><canvas id="trendChart"></canvas></div>
+    
+    <div id="moreView" style="display:none;">
+      <div class="moreGrid" id="moreGrid"></div>
     </div>
 
-    <div class="chartWrap" id="trendView"><canvas id="trend"></canvas></div>
-    <div id="moreView" style="display:none;"><div class="moreGrid" id="moreGrid"></div></div>
-
-    <div class="seg" id="viewSeg" style="margin-top:auto">
-      <button class="active" data-view="trend">Trend</button>
-      <button data-view="more">More</button>
+    <div style="display:flex; gap:10px; margin-top:15px;">
+      <button class="tab active" id="btnTrend">Trend</button>
+      <button class="tab" id="btnMore">More</button>
     </div>
   </div>
 </div>
 
-<div class="modalBg" id="modalAddBg">
+<div class="modalBg" id="modalAdd">
   <div class="modal">
-    <div class="mTitle" id="addTitle">データ追加</div>
+    <h3 style="margin:0 0 15px 0">データ入力</h3>
     <div class="form">
-      <div class="field full"><label>測定日</label><input id="a_date" type="date" /></div>
-      <div class="field"><label>体重(㎏)</label><input id="a_weight" inputmode="decimal" /></div>
-      <div class="field"><label>BMI</label><input id="a_bmi" inputmode="decimal" /></div>
-      <div class="field"><label>ウエスト</label><input id="a_waist" inputmode="decimal" /></div>
-      <div class="field"><label>体脂肪量(㎏)</label><input id="a_fm" inputmode="decimal" /></div>
-      <div class="field"><label>内臓脂肪指数</label><input id="a_vfi" inputmode="decimal" /></div>
-      <div class="field"><label>体脂肪率(％)</label><input id="a_bf" inputmode="decimal" /></div>
-      <div class="field"><label>骨格筋量(㎏)</label><input id="a_smm" inputmode="decimal" /></div>
-      <div class="field"><label>基礎代謝量(kcal)</label><input id="a_bmr" inputmode="decimal" /></div>
-      <div class="field"><label>四肢除脂肪量(㎏)</label><input id="a_lbm" inputmode="decimal" /></div>
+      <div class="field f-full"><label>測定日</label><input type="date" id="a_date"></div>
+      <div class="field"><label>体重(kg)</label><input type="number" step="0.1" id="a_weight"></div>
+      <div class="field"><label>BMI</label><input type="number" step="0.1" id="a_bmi"></div>
+      <div class="field"><label>ウエスト</label><input type="number" step="0.1" id="a_waist"></div>
+      <div class="field"><label>体脂肪量(kg)</label><input type="number" step="0.1" id="a_fm"></div>
+      <div class="field"><label>内臓脂肪指数</label><input type="number" id="a_vfi"></div>
+      <div class="field"><label>体脂肪率(%)</label><input type="number" step="0.1" id="a_bf"></div>
+      <div class="field"><label>骨格筋量(kg)</label><input type="number" step="0.1" id="a_smm"></div>
+      <div class="field"><label>基礎代謝(kcal)</label><input type="number" id="a_bmr"></div>
+      <div class="field"><label>四肢除脂肪(kg)</label><input type="number" step="0.1" id="a_lbm"></div>
     </div>
-    <div class="mActions">
-      <button class="btn" id="closeAdd">キャンセル</button>
-      <button class="btn btnDanger" id="deleteOne" style="display:none;">削除</button>
-      <button class="btn btnPrimary" id="saveAdd">保存</button>
+    <div class="m-btns">
+      <button class="btn" onclick="$('modalAdd').style.display='none'">閉じる</button>
+      <button class="btn btn-save" id="saveBtn">保存</button>
     </div>
-  </div>
-</div>
-
-<div class="modalBg" id="modalListBg">
-  <div class="modal">
-    <div class="mTitle">記録一覧</div>
-    <div id="listWrap" style="max-height:60vh;overflow:auto;"></div>
-    <div class="mActions"><button class="btn" id="closeList">閉じる</button></div>
   </div>
 </div>
 
 <script>
-const SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzGzX9BIdc_ixAIAjkNla1-6Co5auO5LzUyCFAQjIwuVEVufiMJHjAkvm6g52t2Lq2vpQ/exec';
-const SHEET_TOKEN = 'CHANGE_ME_TOKEN';
+const ENDPOINT = '【あなたのGASのURL】';
+const TOKEN = 'CHANGE_ME_TOKEN';
 
 const METRICS = {
-  '体重(㎏)': { name:'体重', unit:'kg' },
-  '体脂肪率(％)': { name:'体脂肪率', unit:'%' },
-  '体脂肪量(㎏)': { name:'体脂肪量', unit:'kg' },
-  '骨格筋量(㎏)': { name:'骨格筋量', unit:'kg' },
-  'BMI': { name:'BMI', unit:'' },
-  'ウエスト': { name:'ウエスト', unit:'cm' },
-  '内臓脂肪指数': { name:'内臓脂肪', unit:'' },
-  '基礎代謝量(kcal)': { name:'基礎代謝', unit:'kcal' },
-  '四肢の除脂肪量(㎏)': { name:'四肢除脂肪', unit:'kg' }
+  weight_kg: { name:'体重', unit:'kg' },
+  body_fat_pct: { name:'体脂肪率', unit:'%' },
+  fat_mass_kg: { name:'体脂肪量', unit:'kg' },
+  skeletal_muscle_kg: { name:'骨格筋量', unit:'kg' },
+  bmi: { name:'BMI', unit:'' },
+  waist: { name:'ウエスト', unit:'cm' },
+  visceral_fat_idx: { name:'内臓脂肪', unit:'' },
+  bmr: { name:'基礎代謝', unit:'kcal' },
+  limb_lbm: { name:'四肢除脂肪', unit:'kg' }
 };
-const MAIN_KEYS = ['体重(㎏)', '体脂肪率(％)', '体脂肪量(㎏)', '骨格筋量(㎏)'];
 
-const $ = (id)=>document.getElementById(id);
-let rows = [], currentRange = 'all', currentMetric = '体重(㎏)', currentView = 'trend', trendChart = null;
+const $ = id => document.getElementById(id);
+let rows = [], chart = null, currentMetric = 'weight_kg';
 
-function fmt1(x){ return (x || x===0) ? (Math.round(x*100)/100).toFixed(1) : '—'; }
-
-async function withBusy(label, fn){
-  $('subtitle').textContent = label;
+async function loadData() {
   $('logoBtn').classList.add('spinning');
-  try { await fn(); } finally { $('logoBtn').classList.remove('spinning'); }
+  const cb = 'jsonp_' + Date.now();
+  const script = document.createElement('script');
+  script.src = `${ENDPOINT}?action=read&token=${TOKEN}&callback=${cb}`;
+  
+  const res = await new Promise(resolve => {
+    window[cb] = data => { resolve(data); delete window[cb]; script.remove(); };
+    document.body.appendChild(script);
+  });
+
+  rows = res.rows.map(r => {
+    let obj = {};
+    res.header.forEach((h, i) => obj[h] = r[i]);
+    return obj;
+  }).sort((a,b) => a.date.localeCompare(b.date));
+
+  render();
+  $('logoBtn').classList.remove('spinning');
 }
 
-async function reloadRows(){
-  await withBusy('Loading…', async ()=>{
-    const res = await new Promise(r => {
-      const cb = 'callback_'+Date.now();
-      window[cb] = (data)=>{ r(data); delete window[cb]; };
-      const s = document.createElement('script');
-      s.src = `${SHEET_ENDPOINT}?action=read&token=${SHEET_TOKEN}&callback=${cb}`;
-      document.body.appendChild(s);
-    });
-    rows = res.rows.map(r => {
-      let obj = { '測定日': r[0] };
-      res.header.forEach((h, i) => obj[h] = r[i]);
-      return obj;
-    }).sort((a,b)=>a['測定日'].localeCompare(b['測定日']));
-    render();
+function render() {
+  if(!rows.length) return;
+  const last = rows[rows.length-1];
+  $('k_weight').textContent = last.weight_kg || '—';
+  $('k_bf').textContent = last.body_fat_pct || '—';
+  
+  updateChart();
+  updateMore(last);
+}
+
+function updateChart() {
+  const ctx = $('trendChart').getContext('2d');
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: rows.map(r => r.date),
+      datasets: [{
+        data: rows.map(r => r[currentMetric]),
+        borderColor: '#7CFF8C', tension: 0.3, fill: false, pointRadius: 2
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
   });
 }
 
-function render(){
-  const data = rows; // 範囲フィルタは簡易化
-  $('count').textContent = data.length;
-  if(!data.length) return;
-
-  const latest = data.at(-1), start = data[0];
-  $('subtitle').textContent = `${data[0]['測定日']} → ${latest['測定日']}`;
-
-  $('k_weight').textContent = fmt1(latest['体重(㎏)']);
-  $('k_bf').textContent = fmt1(latest['体脂肪率(％)']);
-  $('k_fm').textContent = fmt1(latest['体脂肪量(㎏)']);
-  $('k_smm').textContent = fmt1(latest['骨格筋量(㎏)']);
-
-  if(currentView==='trend') drawTrend(); else drawMore(latest);
-}
-
-function drawTrend(){
-  const ctx = $('trend');
-  const labels = rows.map(r=>r['測定日']);
-  const vals = rows.map(r=>r[currentMetric]);
-  if(trendChart) trendChart.destroy();
-  trendChart = new Chart(ctx, {
-    type:'line',
-    data:{ labels, datasets:[{ data:vals, borderColor:'#7CFF8C', tension:0.3, pointRadius:2 }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
-  });
-}
-
-function drawMore(latest){
-  const grid = $('moreGrid'); grid.innerHTML = '';
-  Object.keys(METRICS).forEach(k => {
-    if(MAIN_KEYS.includes(k)) return;
+function updateMore(last) {
+  const grid = $('moreGrid');
+  grid.innerHTML = '';
+  Object.keys(METRICS).forEach(key => {
     const div = document.createElement('div');
     div.className = 'moreItem';
-    div.innerHTML = `<div class="moreName">${METRICS[k].name}</div><div class="moreVal">${fmt1(latest[k])}<span class="moreUnit">${METRICS[k].unit}</span></div>`;
-    div.onclick = ()=>{ currentMetric = k; setView('trend'); };
+    div.innerHTML = `<div class="klabel">${METRICS[key].name}</div><div style="font-weight:900">${last[key] || '—'}<small style="color:var(--muted);margin-left:2px">${METRICS[key].unit}</small></div>`;
     grid.appendChild(div);
   });
 }
 
-function setView(v){
-  currentView = v;
-  $('trendView').style.display = v==='trend'?'block':'none';
-  $('moreView').style.display = v==='more'?'block':'none';
-  $('metricTabs').style.display = v==='trend'?'flex':'none';
-  document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('active', b.dataset.view===v));
-  render();
-}
-
-/* --- 追加/更新ロジック --- */
-function resetForm(){
+// フォームリセット & 今日付セット
+function resetForm() {
   const now = new Date();
-  $('a_date').value = now.toISOString().split('T')[0]; // 今日をセット
-  ['a_weight','a_bmi','a_waist','a_fm','a_vfi','a_bf','a_smm','a_bmr','a_lbm'].forEach(id=>$(id).value='');
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  $('a_date').value = `${y}-${m}-${d}`;
+  ['a_weight','a_bmi','a_waist','a_fm','a_vfi','a_bf','a_smm','a_bmr','a_lbm'].forEach(id => $(id).value = '');
 }
 
-$('openAdd').onclick = ()=>{ resetForm(); $('addTitle').textContent='データ追加'; $('deleteOne').style.display='none'; $('modalAddBg').style.display='flex'; };
-$('closeAdd').onclick = ()=> $('modalAddBg').style.display='none';
+$('openAdd').onclick = () => { resetForm(); $('modalAdd').style.display='flex'; };
 
-$('saveAdd').onclick = async ()=>{
-  const p = {
-    action:'upsert', token:SHEET_TOKEN,
-    '測定日': $('a_date').value,
-    '体重(㎏)': $('a_weight').value,
-    'BMI': $('a_bmi').value,
-    'ウエスト': $('a_waist').value,
-    '体脂肪量(㎏)': $('a_fm').value,
-    '内臓脂肪指数': $('a_vfi').value,
-    '体脂肪率(％)': $('a_bf').value,
-    '骨格筋量(㎏)': $('a_smm').value,
-    '基礎代謝量(kcal)': $('a_bmr').value,
-    '四肢の除脂肪量(㎏)': $('a_lbm').value
-  };
-  await withBusy('Saving…', async ()=>{
-    await fetch(SHEET_ENDPOINT, { method:'POST', mode:'no-cors', body:new URLSearchParams(p) });
-    await new Promise(r=>setTimeout(r, 1000));
-    await reloadRows();
+$('saveBtn').onclick = async () => {
+  const params = new URLSearchParams({
+    action: 'upsert', token: TOKEN,
+    date: $('a_date').value,
+    weight_kg: $('a_weight').value,
+    bmi: $('a_bmi').value,
+    waist: $('a_waist').value,
+    fat_mass_kg: $('a_fm').value,
+    visceral_fat_idx: $('a_vfi').value,
+    body_fat_pct: $('a_bf').value,
+    skeletal_muscle_kg: $('a_smm').value,
+    bmr: $('a_bmr').value,
+    limb_lbm: $('a_lbm').value
   });
-  $('modalAddBg').style.display='none';
+
+  $('saveBtn').disabled = true;
+  await fetch(ENDPOINT, { method: 'POST', mode: 'no-cors', body: params });
+  setTimeout(() => {
+    $('modalAdd').style.display = 'none';
+    $('saveBtn').disabled = false;
+    loadData();
+  }, 1000);
 };
 
-$('logoBtn').onclick = reloadRows;
-document.querySelectorAll('#viewSeg button').forEach(b=>b.onclick=()=>setView(b.dataset.view));
-document.querySelectorAll('#metricTabs .tab').forEach(t=>t.onclick=()=>{
-  document.querySelectorAll('#metricTabs .tab').forEach(x=>x.classList.remove('active'));
-  t.classList.add('active'); currentMetric = t.dataset.m; render();
+document.querySelectorAll('#metricTabs .tab').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('#metricTabs .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentMetric = tab.dataset.m;
+    updateChart();
+  };
 });
 
-reloadRows();
+$('btnTrend').onclick = () => {
+  $('trendView').style.display = 'block'; $('moreView').style.display = 'none';
+  $('btnTrend').classList.add('active'); $('btnMore').classList.remove('active');
+};
+$('btnMore').onclick = () => {
+  $('trendView').style.display = 'none'; $('moreView').style.display = 'block';
+  $('btnTrend').classList.remove('active'); $('btnMore').classList.add('active');
+};
+
+$('logoBtn').onclick = loadData;
+loadData();
 </script>
 </body>
 </html>
